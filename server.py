@@ -30,8 +30,25 @@ def health():
 
 @app.post("/imagekit/auth")
 def imagekit_auth(authorization: str | None = Header(default=None)):
-    # Authentication must be verified server-side before signing uploads.
+    private_key = os.getenv("IMAGEKIT_PRIVATE_KEY", "").strip()
+
+    if not private_key:
+        raise HTTPException(
+            status_code=503,
+            detail="IMAGEKIT_PRIVATE_KEY is missing",
+        )
+
+    # Do not issue upload signatures without verifying
+    # the caller's Firebase identity.
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Firebase authentication required",
+        )
+
+    # Firebase Admin token verification will be added
+    # before enabling signed uploads.
     raise HTTPException(
         status_code=503,
-        detail="Upload authentication is not configured yet",
+        detail="Firebase token verification is not configured yet",
     )
