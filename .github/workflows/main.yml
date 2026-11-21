@@ -1,0 +1,31 @@
+
+name: HADBAI Daily Image Cleanup
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Cleanup sold account images
+        env:
+          CLEANUP_SECRET: ${{ secrets.CLEANUP_SECRET }}
+        run: |
+          if [ -z "$CLEANUP_SECRET" ]; then
+            echo "Missing CLEANUP_SECRET"
+            exit 1
+          fi
+
+          curl --fail-with-body \
+            --retry 2 \
+            --max-time 180 \
+            -X POST \
+            -H "X-Cleanup-Secret: $CLEANUP_SECRET" \
+            https://hadbai-pes-images.onrender.com/maintenance/cleanup-sold-images
